@@ -1,0 +1,117 @@
+
+import java.util.*;
+import java.lang.*;
+import java.io.*;
+
+class GFG {
+	public static void main (String[] args) {
+		Scanner io = new Scanner(System.in);
+		int t = io.nextInt();
+		char arr[][] = new char[9][9];
+		for(int i = 0;i < t; i ++){
+		    for(int j = 0; j < 9; j ++){
+		        for(int k = 0;k < 9;k ++){
+		            arr[j][k] = io.next().charAt(0);
+		        }
+		    }
+		    sudokuSolver(arr);
+		    for(int m = 0;m < 9;m ++){
+		        for(int l = 0;l < 9;l ++){
+		            System.out.print(arr[m][l]  + " ");
+		        }
+		    }
+		    System.out.println();
+		}
+	}
+	public static void sudokuSolver(char[][] arr){
+	    Accumulator acc  = new Accumulator(arr);
+	    sudokuSolverHelper(0,0,arr,acc);
+	}
+	public static boolean sudokuSolverHelper(int r,int c,char[][] arr,Accumulator acc){
+	    if(r == 9) return true;
+	    int nextcol = c == 8? 0:c + 1;
+	    int nextRow = c == 8? r + 1: r;
+	    if(arr[r][c] == '0'){
+	        char x[] = new char[]{'1','2','3','4','5','6','7','8','9'};
+	        List<Character> ch = new ArrayList<>();
+	        for(char cjj: x ){
+	            if(acc.isValidChoice(r,c,cjj)){
+	                ch.add(cjj);
+	                
+	            }
+	        }
+	        //System.out.print(ch);
+	        for(Character cc : ch){
+	            
+	                acc.makeChoice(r,c,cc,arr);
+	                boolean foundResult = sudokuSolverHelper(nextRow, nextcol,arr, acc);
+                    if (foundResult) return true;
+	                acc.forgetChoice(arr);
+	            
+	        }
+	         return false;
+	    }
+	    else{
+	        return sudokuSolverHelper(nextRow,nextcol,arr,acc);
+	    }
+	    
+	    
+	}
+}
+
+class Accumulator{
+    class Pos{
+        int r,c;
+        char choice;
+        Pos(int r, int c, char choice){
+            this.r = r;
+            this.c = c;
+            this.choice = choice;
+        }
+    }
+    public static Set<Character>[] rowMember = new Set[9];
+    public static Set<Character>[] colMember = new Set[9];
+    public static Set<Character>[][] boxMember = new Set[3][3];
+    public static List<Pos> choices = new ArrayList<>();
+    Accumulator(char[][] arr){
+        for(int i =0 ;i < 9; i ++){
+            rowMember[i] = new HashSet<>();
+            colMember[i] = new HashSet<>();
+        }
+        for(int i = 0;i < 3; i ++){
+            boxMember[i] = new Set[3];
+            for(int j = 0;j < 3; j ++){
+                boxMember[i][j] = new HashSet<>();
+            }
+        }
+        for(int i = 0; i < 9; i++){
+            for(int j = 0;j < 9;j ++){
+                rowMember[i].add(arr[i][j]);
+                colMember[j].add(arr[i][j]);
+                boxMember[i/3][j/3].add(arr[i][j]);
+            }
+        }
+    }
+    public static boolean isValidChoice(int r,int c, char ch){
+        if(rowMember[r].contains(ch)) return false;
+        if(colMember[c].contains(ch)) return false;
+        if(boxMember[r/3][c/3].contains(ch)) return false;
+        return true;
+    }
+    public static void forgetChoice(char[][] arr){
+        if(!choices.isEmpty()){
+         Pos pos = choices.remove(choices.size() - 1);
+        rowMember[pos.r].remove(pos.choice);
+        colMember[pos.c].remove(pos.choice);
+        boxMember[pos.r/3][pos.c/3].remove(pos.choice);
+        arr[pos.r][pos.c] = '0';
+        }
+    }
+    public  void makeChoice(int r,int c,char x,char[][] board){
+        choices.add(new Pos(r, c, x));
+        rowMember[r].add(x);
+        colMember[c].add(x);
+        boxMember[r/3][c/3].add(x);
+        board[r][c] = x;
+    }
+}
